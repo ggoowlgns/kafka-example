@@ -32,6 +32,7 @@ Spring Boot 기반 프로젝트 입니다.
     * (false) 마지막 리더가 있는 브로커가 살아나기를 기다린다. (제일 먼저 올라오는 브로커를 마지막 리더로 유도) -> 메시지 손실 방지 but, 장애 지연
     * (true) ISR에서 추방되었지만 먼저 살아나면 자동으로 리더가 되도록 -> 빠른 서비스 제공, 메시지 손실 o
 * producer
+  * msg에 key 를 정해서 특정 partition으로 들어가게 설정 가능
 * consumer
   * zookeeper 의 /kafka/consumers 에 영구 ZNode로 각 파티션들에 대해 어디까지 읽었는지를 기록해둔다.
     * -> consumer의 group.id를  UUID 로 하면 안될듯? (재시작하면 파티션의 처음부터 읽는꼴? ㄴㄴ ㄱㅊ -> latest msg 를 읽게 할 수 도 있다.)
