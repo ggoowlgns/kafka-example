@@ -68,10 +68,37 @@ public class KafkaConfig {
     return kafkaProducer;
   }
 
+  /**
+   * Consumer Properties
+   * - bootstrap.servers : 브로커 리스트 전부를 입력하는걸 권장 - 하나만 입력해도 돌아가기는 하는데 but, 특정 broker가 죽으면 접속이 불가능
+   * - fetch.min.bytes : 한번에 가져오는 최소 data size
+   * - fetch.max.bytes : 한번에 가져오는 최대 data size
+   * - group.id
+   * - enable.auto.commit : 백그라운드로 주기적으로 offset commit
+   * - auto.offset.reset : kafka에 저장된 초기 오프셋이 없거나 현재 오프셋이 더이상 존재하지 않는 경우 reset 옵션
+   *    - earliest : 가장 초기의 offset
+   *    - latest : 가장 마지막 오프셋으로
+   *    - none : 이전 offset을 찾지 못하면 error 내림
+   * - request.timeout.ms : 응답 기다리는 최대 시간
+   * - session.timeout.ms (default : 10): 컨슈머가 해당 시간동안 heartbeat를 보내지 않으면 (그룹 코디네이터에게) -> 해당 컨슈머는 장애가 발생한 것으로 판단하고 컨슈머 그룹은 리밸런싱을 시도한다.
+   *    - 해당 값을 낮추면 실패를 빨리 감지할수는 있지만, GC|poll 시간이 증가하면 원하지 않는 리밸런스가 일어나기도 한다.
+   * - heartbeat.interval.ms (default : 3초) : heartbeat를 얼마나 자주 보낼지 결정  - session.timeout.ms 보다 무조건 낮아야 한다.
+   *                            보통 session.timeout.ms보다 1/3 값으로 설정
+   * - max.poll.records : 단일 호출 poll()에 대한 최대 레코드 수를 조정 - app이 polling loop에서 데이터 양 조정
+   * - max.poll.interval.ms : 계속 heartbeat만 보내고 실제 메시지를 가져가지 않는 경우도 있는데, 이러한 경우 컨슈머가 무한정 파티션을 점유할 수 있기 때문에
+   *                          일정 기간동안 실제 poll를 하지 않으면 장애라고 판단하는 시간 -> 다른 컨슈머에게 점유하고 있는 파티션을 나눠준다.
+   * - fetch.max.wait.ms : min.bytes 데이터보다 적은 경우 요청에 응답을 기다리는 최대 시간
+   * @return
+   */
   @Bean
   public KafkaConsumer kafkaConsumer() {
-    Properties kafkaProperties = new Properties();
-    KafkaConsumer kafkaConsumer = new KafkaConsumer(kafkaProperties);
+    Properties properties = new Properties();
+    properties.put("bootstrap.servers", kafkaBrokers);
+    properties.put("group.id", "jhpark-consumer");
+    properties.put("enable.auto.commit", "true");
+    properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringSerializer");
+    properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringSerializer");
+    KafkaConsumer kafkaConsumer = new KafkaConsumer(properties);
     return kafkaConsumer;
   }
 
